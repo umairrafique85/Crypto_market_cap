@@ -6,8 +6,10 @@ if (!require(dplyr)) install.packages('dplyr')
 library(dplyr)
 if (!require(stringr)) install.packages('stringr')
 library(stringr)
+if (!require(here)) install.packages('here')
+library(here)
 
-currdir <- dirname(parent.frame(2)$ofile)
+currdir <- here()
 setwd(currdir)
 # setwd("E:/Dropbox/Furqan's Personal/R")
 url <- "https://coinmarketcap.com/all/views/all/"
@@ -22,19 +24,23 @@ currtable$Price <- as.numeric(currtable$Price)
 currtable$`Market Cap` <- as.numeric(currtable$`Market Cap`)
 
 bitcoinsheet <- read.csv('bitcoinneeded.csv')
-
+bitcoinsheet$Exact.Name <- str_trim(bitcoinsheet$Exact.Name)
 USDTsheet <- read.csv('USDTneeded.csv')
-
+USDTsheet$Exact.Name <- str_trim(USDTsheet$Exact.Name)
 bitcoinfiltered <- subset(currtable, Symbol %in% bitcoinsheet$Currency)
 dupindex <- which(duplicated(bitcoinfiltered$Symbol) | duplicated(bitcoinfiltered$Symbol, fromLast=TRUE))
 
 # bitcoinfiltered2 <- bitcoinfiltered[-(dupindex[!(bitcoinfiltered[dupindex,2] %in% bitcoinsheet$`Exact Name`)]),]
 
+bitcoinfiltered$Name <- str_replace(bitcoinfiltered$Name, pattern="\n", replace=" ")
+
 bitcoinfiltered2 <- bitcoinfiltered[-(dupindex[which(!(bitcoinfiltered[dupindex,2] %in% bitcoinsheet$Exact.Name))]),]
+
 
 USDTfiltered <- subset(currtable, Symbol %in% USDTsheet$Currency)
 dupindex2 <- which(duplicated(USDTfiltered$Symbol) | duplicated(USDTfiltered$Symbol, fromLast=TRUE))
 
+USDTfiltered$Name <- str_replace(USDTfiltered$Name, pattern="\n", replace=" ")
 USDTfiltered2 <- USDTfiltered[-(dupindex2[which(!(USDTfiltered[dupindex2,2] %in% USDTsheet$Exact.Name))]),]
 
 bitcoinout <- select(bitcoinfiltered2, Symbol, Price, rank=`#`, `Market Cap`)
